@@ -1,5 +1,7 @@
-package com.example.tenisv2;
+package com.example.tenisv2.service;
 
+import com.example.tenisv2.model.User;
+import com.example.tenisv2.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +28,8 @@ public class UserService {
     }
 
     public User getCurrentUserFromSessionOrToken() {
+        // Retrieve current user details based on session or token
+        // Example implementation (assuming session-based authentication):
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();

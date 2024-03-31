@@ -1,7 +1,6 @@
-package com.example.tenisv2;
+package com.example.tenisv2.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
+import com.example.tenisv2.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Long> {
