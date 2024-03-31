@@ -25,10 +25,31 @@
               }
 
               // Continue processing user details and loading content based on role
+              let content = '';
               if (user.role === 'admin') {
-                // Fetch and display content for admin users
+                content = '<h2>Admin Dashboard</h2>';
+                // Fetch and display content for admin users (e.g., table of all users)
+                fetch('/api/users/all')
+                        .then(response => response.json())
+                        .then(users => {
+                          content += '<table border="1">';
+                          content += '<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>';
+                          users.forEach(u => {
+                            content += `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${u.role}</td></tr>`;
+                          });
+                          content += '</table>';
+                          document.getElementById('content').innerHTML = content;
+                        })
+                        .catch(error => {
+                          console.error('Error fetching users:', error.message);
+                          // Handle error gracefully, e.g., display error message to user
+                        });
               } else {
-                // Fetch and display content for non-admin users
+                content = '<h2>User Dashboard</h2>';
+                // Fetch and display content for non-admin users (e.g., table of matches)
+                // Implement logic to fetch matches here
+                content += '<p>Table of matches goes here...</p>';
+                document.getElementById('content').innerHTML = content;
               }
             })
             .catch(error => {
