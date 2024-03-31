@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+</head>
+<body>
+<h1>Dashboard</h1>
+<div id="content"></div>
+
+<script>
+  // Function to fetch and display content based on user role
+  function loadContent() {
+    fetch('/api/users/current') // Assuming you have an endpoint to get current user details
+            .then(response => response.json())
+            .then(user => {
+              // Check user role and display corresponding content
+              if (user.role === 'admin') {
+                fetch('/api/users/all') // Endpoint to fetch all users
+                        .then(response => response.json())
+                        .then(users => {
+                          let html = '<h2>All Users</h2><table><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>';
+                          users.forEach(u => {
+                            html += `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${u.role}</td></tr>`;
+                          });
+                          html += '</table>';
+                          document.getElementById('content').innerHTML = html;
+                        })
+                        .catch(error => console.error('Error:', error));
+              } else {
+                fetch('/api/matches') // Endpoint to fetch matches
+                        .then(response => response.json())
+                        .then(matches => {
+                          let html = '<h2>Matches</h2><table><tr><th>ID</th><th>Team A</th><th>Team B</th><th>Date</th></tr>';
+                          matches.forEach(m => {
+                            html += `<tr><td>${m.id}</td><td>${m.teamA}</td><td>${m.teamB}</td><td>${m.date}</td></tr>`;
+                          });
+                          html += '</table>';
+                          document.getElementById('content').innerHTML = html;
+                        })
+                        .catch(error => console.error('Error:', error));
+              }
+            })
+            .catch(error => console.error('Error:', error));
+  }
+
+  // Call loadContent function when the page loads
+  window.onload = loadContent;
+</script>
+</body>
+</html>
