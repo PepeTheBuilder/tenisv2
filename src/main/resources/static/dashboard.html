@@ -7,6 +7,7 @@
 <body>
 <h1>Dashboard</h1>
 <div id="content"></div>
+<button onclick="redirectToUpdate()">Update Information</button>
 
 <script>
   // Function to fetch and display content based on user role
@@ -28,12 +29,10 @@
               let content = '';
               if (user.role === 'admin') {
                 content = '<h2>Admin Dashboard</h2>';
-                // Fetch and display content for admin users (e.g., table of all users)
                 fetch('/api/users/all')
                         .then(response => response.json())
                         .then(users => {
-                          content += '<table border="1">';
-                          content += '<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>';
+                          content += '<table border="1"><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>';
                           users.forEach(u => {
                             content += `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${u.role}</td></tr>`;
                           });
@@ -42,20 +41,54 @@
                         })
                         .catch(error => {
                           console.error('Error fetching users:', error.message);
-                          // Handle error gracefully, e.g., display error message to user
                         });
+                content += '<button onClick="redirectToUserManagement()">User Management</button>';
+                content += '<button onClick="redirectToMatchExport()">Matches</button>';
               } else {
-                content = '<h2>User Dashboard</h2>';
-                // Fetch and display content for non-admin users (e.g., table of matches)
-                // Implement logic to fetch matches here
-                content += '<p>Table of matches goes here...</p>';
-                document.getElementById('content').innerHTML = content;
+                getMatchesByRole(user.role);
               }
             })
             .catch(error => {
               console.error('Error fetching current user details:', error.message);
-              // Handle error gracefully, e.g., display error message to user
             });
+  }
+
+  function getMatchesByRole(role) {
+    // Assume there's an API endpoint that returns matches based on the user's role
+    fetch(`/api/users/byRole/${role}`)
+            .then(response => response.json())
+            .then(matches => {
+              let content = '<h2>User Dashboard</h2>';
+              if (matches.length > 0) {
+                content += '<table border="1"><tr><th>ID</th><th>Details</th></tr>';
+                matches.forEach(match => {
+                  content += `<tr><td>${match.id}</td><td>Match details here...</td></tr>`;
+                });
+                content += '</table>';
+              } else {
+                content += '<p>No matches found.</p>';
+              }
+              document.getElementById('content').innerHTML = content;
+            })
+            .catch(error => {
+              console.error('Error fetching matches:', error.message);
+              document.getElementById('content').innerHTML = '<h2>User Dashboard</h2><p>Error loading matches.</p>';
+            });
+  }
+
+  // Redirect function for update page
+  function redirectToUpdate() {
+    window.location.href = '/update.html';
+  }
+
+  // Redirect function for user management page
+  function redirectToUserManagement() {
+    window.location.href = '/user_management.html';
+  }
+
+  // Redirect function for match export page
+  function redirectToMatchExport() {
+    window.location.href = '/match_export.html';
   }
 
   // Call loadContent function when the page loads

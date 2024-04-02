@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Matches</title>
+</head>
+<body>
+<h1>Search Matches</h1>
+<form id="searchForm">
+    <label for="playerName">Player Name:</label>
+    <input type="text" id="playerName" name="playerName"><br>
+
+    <label for="matchDate">Match Date:</label>
+    <input type="text" id="matchDate" name="matchDate" placeholder="YYYY-MM-DD HH:MM:SS"><br>
+
+    <button type="submit">Search</button>
+</form>
+
+<div id="matches"></div>
+
+<script>
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(this);
+        fetch('/api/users/search', {
+            method: 'GET',
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch matches');
+                }
+                return response.json();
+            })
+            .then(matches => {
+                displayMatches(matches);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+
+    function displayMatches(matches) {
+        var matchesDiv = document.getElementById('matches');
+        matchesDiv.innerHTML = '';
+
+        if (matches.length === 0) {
+            matchesDiv.innerHTML = 'No matches found.';
+            return;
+        }
+
+        var table = '<table border="1"><tr><th>ID</th><th>Tournament ID</th><th>Player 1 ID</th><th>Player 2 ID</th><th>Referee ID</th><th>Match Date</th><th>Score</th></tr>';
+        matches.forEach(match => {
+            table += '<tr>';
+            table += `<td>${match.id}</td>`;
+            table += `<td>${match.tournamentId}</td>`;
+            table += `<td>${match.player1Id}</td>`;
+            table += `<td>${match.player2Id}</td>`;
+            table += `<td>${match.refereeId}</td>`;
+            table += `<td>${match.matchDate}</td>`;
+            table += `<td>${match.score}</td>`;
+            table += '</tr>';
+        });
+        table += '</table>';
+        matchesDiv.innerHTML = table;
+    }
+</script>
+</body>
+</html>
