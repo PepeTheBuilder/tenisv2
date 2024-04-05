@@ -2,10 +2,6 @@ package com.example.tenisv2.controllers;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
 
@@ -49,7 +46,6 @@ public class UserController {
         user.setPassword(passEncoded);
         return userService.registerUser(user);
     }
-
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@RequestParam String username, @RequestParam String password) {
         User user = userService.findByUsername(username);
@@ -69,7 +65,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
-
     @GetMapping("/current")
     public ResponseEntity<User> getCurrentUser() {
         // Assuming you have a way to retrieve current user details (e.g., from session or token)
@@ -79,7 +74,6 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
-
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
         // Assuming you have a way to retrieve current user details (e.g., from session or token)
@@ -107,7 +101,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Return Forbidden status if not admin
         }
     }
-
     @PostMapping("/update")
     public ResponseEntity<User> updateUser(@RequestBody User updatedUser) {
         // Check if the user is logged in
@@ -133,7 +126,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Return Unauthorized status if not logged in
         }
     }
-
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logoutUser() {
         if (userLoggedInFlag) {
@@ -150,7 +142,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
-
     @GetMapping("/match_export")
     public ResponseEntity<String> exportMatchData() {
         // Assuming you have a way to retrieve current user details (e.g., from session or token)
@@ -177,22 +168,22 @@ public class UserController {
     @PutMapping("/update_user") // by admin
     public ResponseEntity<User> updateUserByAdmin(@RequestBody User updatedUser) {
         User existingUser = null;
+        System.out.println("New user: " + updatedUser);
         if (updatedUser.getId() != null) {
             // Update user based on ID
             existingUser = userService.findById(updatedUser.getId());
-        } else if (updatedUser.getEmail() != null) {
-            // Update user based on email
-            existingUser = userService.findByEmail(updatedUser.getEmail());
+        } else if (updatedUser.getUsername() != null) {
+            // Update user based on username
+            existingUser = userService.findByUsername(updatedUser.getUsername());
         }
 
         if (existingUser != null) {
             // Update user details
             existingUser.setUsername(updatedUser.getUsername());
-            existingUser.setEmail(updatedUser.getEmail());
             existingUser.setRole(updatedUser.getRole());
             // Set other fields to update as needed
-
             // Save the updated user
+
             userService.registerUser(existingUser);
 
             return ResponseEntity.ok(existingUser);
@@ -200,8 +191,10 @@ public class UserController {
             return ResponseEntity.notFound().build(); // User not found
         }
     }
-    @DeleteMapping("/delete/{userId}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteUser(@RequestParam Long userId) {
+        System.out.printf("User id to delete: %d\n", userId);
         userService.deleteById(userId);
         return ResponseEntity.ok("User deleted successfully");
     }

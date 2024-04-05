@@ -11,7 +11,7 @@
             const username = document.getElementById("username").value;
             const role = document.getElementById("role").value;
 
-            fetch('/update_user', {
+            fetch('/api/users/update_user', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -38,8 +38,8 @@
             event.preventDefault();
             const userId = document.getElementById("deleteUserId").value;
 
-            fetch(`/delete/${userId}`, {
-                method: 'DELETE',
+            fetch(`/api/users/delete?userId=${userId}`, {
+                method: 'DELETE',  // Change the method to DELETE
             })
                 .then(response => response.text())
                 .then(data => {
@@ -51,6 +51,8 @@
                     alert('Error deleting user');
                 });
         }
+
+
     </script>
 </head>
 <body>

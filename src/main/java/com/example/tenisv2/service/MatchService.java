@@ -5,7 +5,6 @@ import com.example.tenisv2.repository.MatchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,10 +32,6 @@ public class MatchService {
     public List<Match> findByPlayerId(Long playerId) {
         return matchRepository.findByPlayer1Id(playerId);
     }
-    public List<Match>  findById(Long id) {
-        return (List<Match>) matchRepository.findById(id).orElse(null);
-    }
-
     public List<Match> findByPlayerName(String playerName) {
         User player = userService.findByUsername(playerName);
         List<Match> matches = matchRepository.findByPlayer1Id(player.getId());
