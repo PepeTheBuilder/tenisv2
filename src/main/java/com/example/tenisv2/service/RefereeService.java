@@ -18,9 +18,9 @@ public class RefereeService {
     @Autowired
     private MatchRepository matchRepository;
 
-    public List<Match> getRefereeMatches(Long refereeId) {
+/*    public List<Match> getRefereeMatches(Long refereeId) {
         return matchRepository.findByRefereeId(refereeId);
-    }
+    }*/
 
     public void updateMatchScore(Long matchId, String score) {
         Optional<Match> matchOptional = matchRepository.findById(matchId);

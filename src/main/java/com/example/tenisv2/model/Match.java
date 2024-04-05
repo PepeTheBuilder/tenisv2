@@ -24,7 +24,7 @@ public class Match {
     private Long refereeId;
 
     @Column(name = "match_date")
-    private Timestamp matchDate;
+    private String matchDate;
 
     @Column(name = "score")
     private String score;
@@ -76,11 +76,11 @@ public class Match {
         this.refereeId = refereeId;
     }
 
-    public Timestamp getMatchDate() {
+    public String getMatchDate() {
         return matchDate;
     }
 
-    public void setMatchDate(Timestamp matchDate) {
+    public void setMatchDate(String matchDate) {
         this.matchDate = matchDate;
     }
 

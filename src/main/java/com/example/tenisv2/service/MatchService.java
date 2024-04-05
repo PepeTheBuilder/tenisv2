@@ -48,7 +48,7 @@ public class MatchService {
 
     }
 
-    public List<Match> findByMatchDate(Timestamp matchDate) {
+    public List<Match> findByMatchDate(String matchDate) {
         return matchRepository.findByMatchDate(matchDate);
     }
 

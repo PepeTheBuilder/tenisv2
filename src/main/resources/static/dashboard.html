@@ -53,16 +53,24 @@
             });
   }
 
-  function getMatchesByRole(role) {
+  function getMatchesByRole() {
     // Assume there's an API endpoint that returns matches based on the user's role
-    fetch(`/api/users/byRole/${role}`)
+    fetch(`/api/users/byRole`)
             .then(response => response.json())
             .then(matches => {
               let content = '<h2>User Dashboard</h2>';
               if (matches.length > 0) {
-                content += '<table border="1"><tr><th>ID</th><th>Details</th></tr>';
+                content += '<table border="1"><tr><th>ID</th><th>Tournament ID</th><th>Player 1 ID</th><th>Player 2 ID</th><th>Referee ID</th><th>Match Date</th><th>Score</th></tr>';
                 matches.forEach(match => {
-                  content += `<tr><td>${match.id}</td><td>Match details here...</td></tr>`;
+                  content += `<tr>
+                      <td>${match.id}</td>
+                      <td>${match.tournamentId}</td>
+                      <td>${match.player1Id}</td>
+                      <td>${match.player2Id}</td>
+                      <td>${match.refereeId}</td>
+                      <td>${match.matchDate}</td>
+                      <td>${match.score}</td>
+                    </tr>`;
                 });
                 content += '</table>';
               } else {

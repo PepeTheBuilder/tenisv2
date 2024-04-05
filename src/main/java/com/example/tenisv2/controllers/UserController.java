@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.tenisv2.Encoder;
 import com.example.tenisv2.model.Match;
 import com.example.tenisv2.service.MatchService;
 import com.example.tenisv2.service.UserService;
@@ -29,8 +30,11 @@ public class UserController {
     @Autowired
     private MatchService matchService;
 
-    private User userLoggedIn;
+    private static User userLoggedIn;
     private boolean userLoggedInFlag = false;
+
+    // Se pune ca single tone?
+    private static final Encoder encoder = new Encoder();
 
     @PostMapping("/register")
     public User registerUser(@RequestBody User user) {
@@ -41,14 +45,15 @@ public class UserController {
         }
 
         // Set default role or validate role input
-
+        String passEncoded = Encoder.encodingPassword(user.getPassword());
+        user.setPassword(passEncoded);
         return userService.registerUser(user);
     }
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@RequestParam String username, @RequestParam String password) {
         User user = userService.findByUsername(username);
-        if (user != null && user.getPassword().equals(password)) {
+        if (user != null && user.getPassword().equals(Encoder.encodingPassword(password))) {
             userLoggedIn= user;
             userLoggedInFlag = true;
             Map<String, Object> response = new HashMap<>();
@@ -116,7 +121,7 @@ public class UserController {
                     userToUpdate.setEmail(updatedUser.getEmail());
                 }
                 if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-                    userToUpdate.setPassword(updatedUser.getPassword());
+                    userToUpdate.setPassword(Encoder.encodingPassword(updatedUser.getPassword()));
                 }
                 // Update other fields as needed
                 userService.registerUser(userToUpdate); // Update the user in the database
@@ -169,7 +174,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
     }
-    @PutMapping("/update_user")
+    @PutMapping("/update_user") // by admin
     public ResponseEntity<User> updateUserByAdmin(@RequestBody User updatedUser) {
         User existingUser = null;
         if (updatedUser.getId() != null) {
@@ -261,8 +266,7 @@ public class UserController {
             filteredMatches = matchService.findByPlayerName(playerName);
         } else if (matchDate != null && !matchDate.isEmpty()) {
             // Search matches by match date
-            Timestamp timestamp = convertToTimestamp(matchDate);
-            filteredMatches = matchService.findByMatchDate(timestamp);
+            filteredMatches = matchService.findByMatchDate(matchDate);
 
         } else {
             // If no search criteria provided, return all matches
@@ -310,41 +314,29 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save matches as TXT file");
         }
     }
-    private static Timestamp convertToTimestamp(String dateString) {
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date parsedDate = dateFormat.parse(dateString);
-            return new Timestamp(parsedDate.getTime());
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Invalid date format: " + dateString);
-        }
-    }
-
-    @GetMapping("/byRole/referee")
-    public ResponseEntity<List<Match>> getMatchesForReferee() {
-        // Logic to retrieve matches assigned to the logged-in referee
-        // Assuming you have a method in MatchService for this purpose
-        System.out.println(userLoggedInFlag+" ceva se intampla referee \n");
-        if(userLoggedInFlag && userLoggedIn.getRole().equals("referee")){
-            List<Match> matches = matchService.findByRefereeId(userLoggedIn.getId());
-            return ResponseEntity.ok(matches);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
-
     // Endpoint for tennis players to view their scheduled matches
-    @GetMapping("/byRole/tennis_player")
+    @GetMapping("/byRole")
     public ResponseEntity<List<Match>> getMatchesForTennisPlayer() {
         // Logic to retrieve matches scheduled for the logged-in tennis player
         // Assuming you have a method in MatchService for this purpose
-        System.out.println(userLoggedInFlag+"ceva se intampla player \n");
-        if(userLoggedInFlag && userLoggedIn.getRole().equals("tennis_player")){
-            List<Match> matches = matchService.findByPlayerId(userLoggedIn.getId());
-            return ResponseEntity.ok(matches);
-        } else {
+//        System.out.println(userLoggedInFlag+" ceva se intampla player "+userLoggedIn.getRole()+"\n");
+        if (!userLoggedInFlag) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        return switch (userLoggedIn.getRole()) {
+            case "tennis_player" -> {
+                List<Match> playerMatches = matchService.findByPlayerId(userLoggedIn.getId());
+                System.out.println( playerMatches + " - player \n");
+                yield ResponseEntity.ok(playerMatches);
+            }
+            case "referee" -> {
+                List<Match> refereeMatches = matchService.findByRefereeId(userLoggedIn.getId());
+
+                System.out.println( refereeMatches + " - referee \n");
+                yield ResponseEntity.ok(refereeMatches);
+            }
+            default -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        };
 
     }
 }
