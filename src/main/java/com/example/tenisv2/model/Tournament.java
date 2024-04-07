@@ -50,6 +50,5 @@ public class Tournament {
         this.endDate = endDate;
     }
 
-    // Constructors, getters, and setters
 }
 

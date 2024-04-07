@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface TournamentRepository extends JpaRepository<Tournament, Long> {
-    List<Tournament> findAll(); // Method to retrieve all tournaments
+    List<Tournament> findAll();
 }

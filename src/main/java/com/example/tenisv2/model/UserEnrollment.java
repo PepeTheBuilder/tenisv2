@@ -17,13 +17,10 @@ public class UserEnrollment {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    // Constructors, getters, and setters
-    // Constructor
 
     public UserEnrollment() {
     }
 
-    // Getters and setters
 
     public Long getEnrollmentId() {
         return enrollmentId;

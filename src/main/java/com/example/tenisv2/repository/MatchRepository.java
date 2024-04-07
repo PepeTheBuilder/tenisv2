@@ -21,5 +21,4 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     List<Match> findByRefereeId(Long refereeId);
 
 
-    // Define custom query methods if needed
 }

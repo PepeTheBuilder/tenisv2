@@ -40,18 +40,16 @@ public class UserController {
     private static User userLoggedIn;
     private boolean userLoggedInFlag = false;
 
-    // Se pune ca single tone?
-    private static final Encoder encoder = new Encoder();
+
+    private Encoder encoder = Encoder.getInstance();
 
     @PostMapping("/register")
     public User registerUser(@RequestBody User user) {
-        // Check if username or email already exists
         if (userService.findByUsername(user.getUsername()) != null ||
                 userService.findByEmail(user.getEmail()) != null) {
             throw new RuntimeException("Username or email already exists");
         }
 
-        // Set default role or validate role input
         String passEncoded = Encoder.encodingPassword(user.getPassword());
         user.setPassword(passEncoded);
         return userService.registerUser(user);
@@ -65,7 +63,7 @@ public class UserController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Login successful");
-            // You can add additional information to the response such as user details or a session token
+
             return ResponseEntity.ok(response);
         } else {
             userLoggedInFlag = false;
@@ -77,9 +75,9 @@ public class UserController {
     }
     @GetMapping("/current")
     public ResponseEntity<User> getCurrentUser() {
-        // Assuming you have a way to retrieve current user details (e.g., from session or token)
+
         User user = userLoggedIn;
-        user.setPassword(null); // Remove password from response
+        user.setPassword(null);
         if(userLoggedInFlag){
             return ResponseEntity.ok(user);
         } else {
@@ -88,7 +86,6 @@ public class UserController {
     }
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
-        // Assuming you have a way to retrieve current user details (e.g., from session or token)
         if(userLoggedInFlag){
             switch (userLoggedIn.getRole()) {
                 case "admin" -> {
@@ -96,28 +93,24 @@ public class UserController {
                     return ResponseEntity.ok(allUsers);
                 }
                 case "user" -> {
-                    ///TODO: Implement Match classes and methods for user
                     List<User> placeholder = List.of(new User(-1L, "user", "", "user", "user"));
                     return ResponseEntity.ok(placeholder);
                 }
                 case "referee" -> {
-                    ///TODO: Implement Match classes and methods for referee
                     List<User> placeholder = List.of(new User(-1L, "referee", "", "referee", "referee"));
                     return ResponseEntity.ok(placeholder);
                 }
                 default -> {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Return Unauthorized status if not logged in
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
                 }
             }
         } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Return Forbidden status if not admin
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
     @PostMapping("/update")
     public ResponseEntity<User> updateUser(@RequestBody User updatedUser) {
-        // Check if the user is logged in
         if (userLoggedInFlag) {
-            // Update user details if any field has text
             User userToUpdate = userService.findByUsername(userLoggedIn.getUsername());
 
             if (userToUpdate != null) {
@@ -128,14 +121,13 @@ public class UserController {
                 if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
                     userToUpdate.setPassword(Encoder.encodingPassword(updatedUser.getPassword()));
                 }
-                // Update other fields as needed
-                userService.registerUser(userToUpdate); // Update the user in the database
+                userService.registerUser(userToUpdate);
                 return ResponseEntity.ok(userToUpdate);
             } else {
-                return ResponseEntity.notFound().build(); // User not found
+                return ResponseEntity.notFound().build();
             }
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Return Unauthorized status if not logged in
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
     @PostMapping("/logout")
@@ -156,11 +148,9 @@ public class UserController {
     }
     @GetMapping("/match_export")
     public ResponseEntity<String> exportMatchData() {
-        // Assuming you have a way to retrieve current user details (e.g., from session or token)
         if(userLoggedInFlag){
             switch (userLoggedIn.getRole()) {
                 case "admin" -> {
-                    // Export match data
                     return ResponseEntity.ok("Match data exported successfully");
                 }
                 case "user" -> {
@@ -182,39 +172,31 @@ public class UserController {
         User existingUser = null;
         System.out.println("New user: " + updatedUser);
         if (updatedUser.getId() != null) {
-            // Update user based on ID
             existingUser = userService.findById(updatedUser.getId());
         } else if (updatedUser.getUsername() != null) {
-            // Update user based on username
             existingUser = userService.findByUsername(updatedUser.getUsername());
         }
 
         if (existingUser != null) {
-            // Update user details
             existingUser.setUsername(updatedUser.getUsername());
             existingUser.setRole(updatedUser.getRole());
-            // Set other fields to update as needed
-            // Save the updated user
 
             userService.registerUser(existingUser);
 
             return ResponseEntity.ok(existingUser);
         } else {
-            return ResponseEntity.notFound().build(); // User not found
+            return ResponseEntity.notFound().build();
         }
     }
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUser(@RequestParam Long userId) {
-//        System.out.printf("User id to delete: %d\n", userId);
         userService.deleteById(userId);
         return ResponseEntity.ok("User deleted successfully");
     }
     @GetMapping("/user_managmement")
     public ResponseEntity<String> manageUsers() {
-        // Assuming you have a way to retrieve current user details (e.g., from session or token)
         if(userLoggedInFlag){
             if (userLoggedIn.getRole().equals("admin")) {
-                    // Manage users
                     return ResponseEntity.ok("User management page");
                 }
                 else {
@@ -232,12 +214,11 @@ public class UserController {
             List<Match> refereeMatches = matchService.findByRefereeId(userLoggedIn.getId());
             return ResponseEntity.ok(refereeMatches);
         } else {
-            return ResponseEntity.notFound().build(); // Referee not found or unauthorized
+            return ResponseEntity.notFound().build();
         }
     }
     @PostMapping("/score")
     public ResponseEntity<String> updateMatchScore(@RequestParam Long matchId, @RequestParam String score) {
-        // Get the current user
         if (userLoggedInFlag && userLoggedIn.getRole().equals("referee")) {
             List<Match> matches = matchService.findByRefereeId(userLoggedIn.getId());
             Match matchToUpdate = null;
@@ -263,14 +244,11 @@ public class UserController {
                                                      @RequestParam(required = false) String matchDate) {
         List<Match> filteredMatches;
         if (playerName != null && !playerName.isEmpty()) {
-            // Search matches by player name
             filteredMatches = matchService.findByPlayerName(playerName);
         } else if (matchDate != null && !matchDate.isEmpty()) {
-            // Search matches by match date
             filteredMatches = matchService.findByMatchDate(matchDate);
 
         } else {
-            // If no search criteria provided, return all matches
             filteredMatches = matchService.getAllMatches();
         }
         return ResponseEntity.ok(filteredMatches);
@@ -280,9 +258,7 @@ public class UserController {
         List<Match> matches = matchService.getAllMatches();
         String filename = "matches.csv";
         try (FileWriter writer = new FileWriter(filename)) {
-            // Write CSV header
             writer.append("ID,Tournament ID,Player 1 ID,Player 2 ID,Referee ID,Match Date,Score\n");
-            // Write match data
             for (Match match : matches) {
                 writer.append(match.getId() + "," + match.getTournamentId() + "," + match.getPlayer1Id() +
                         "," + match.getPlayer2Id() + "," + match.getRefereeId() + "," + match.getMatchDate() +
@@ -299,7 +275,6 @@ public class UserController {
         List<Match> matches = matchService.getAllMatches();
         String filename = "matches.txt";
         try (FileWriter writer = new FileWriter(filename)) {
-            // Write match data
             for (Match match : matches) {
                 writer.append("ID: " + match.getId() + "\n");
                 writer.append("Tournament ID: " + match.getTournamentId() + "\n");
@@ -317,9 +292,6 @@ public class UserController {
     }
     @GetMapping("/byRole")
     public ResponseEntity<List<Match>> getMatchesForTennisPlayer() {
-        // Logic to retrieve matches scheduled for the logged-in tennis player
-        // Assuming you have a method in MatchService for this purpose
-//        System.out.println(userLoggedInFlag+" ceva se intampla player "+userLoggedIn.getRole()+"\n");
         if (!userLoggedInFlag) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

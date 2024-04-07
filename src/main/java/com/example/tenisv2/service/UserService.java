@@ -15,7 +15,6 @@ public class UserService {
     private UserRepository userRepository;
 
     public User registerUser(User user) {
-        // Perform any additional validation if necessary
         return userRepository.save(user);
     }
 
@@ -28,14 +27,12 @@ public class UserService {
     }
 
     public User getCurrentUserFromSessionOrToken() {
-        // Retrieve current user details based on session or token
-        // Example implementation (assuming session-based authentication):
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             String username = authentication.getName();
             return userRepository.findByUsername(username);
         }
-        return null; // No authenticated user found
+        return null;
     }
 
     public List<User> getAllUsers() {

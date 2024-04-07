@@ -29,13 +29,10 @@ public class Match {
     @Column(name = "score")
     private String score;
 
-    // Constructors, getters, and setters
 
-    // Constructor
     public Match() {
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }

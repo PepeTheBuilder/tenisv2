@@ -17,20 +17,16 @@ public class UserEnrollmentService {
         this.userEnrollmentRepository = userEnrollmentRepository;
     }
 
-    // Method to save user enrollment
     public UserEnrollment saveUserEnrollment(UserEnrollment userEnrollment) {
         return userEnrollmentRepository.save(userEnrollment);
     }
 
-    // Method to retrieve all user enrollments
     public List<UserEnrollment> getAllUserEnrollments() {
         return userEnrollmentRepository.findAll();
     }
 
-    // Method to delete user enrollment by ID
     public void deleteUserEnrollmentById(Long id) {
         userEnrollmentRepository.deleteById(id);
     }
 
-    // You can add more service methods as needed
 }
