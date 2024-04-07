@@ -2,15 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard</title>
 </head>
-<body>
+<body style="background-color: #606060;">
 <h1>Dashboard</h1>
 <div id="content"></div>
 <button onclick="redirectToUpdate()">Update Information</button>
 
 <script>
-  // Function to fetch and display content based on user role
   function loadContent() {
     fetch('/api/users/current')
             .then(response => {
@@ -20,15 +18,13 @@
               return response.json();
             })
             .then(user => {
-              // Check if user object is empty or does not contain expected fields
-              if (!user || !user.id || !user.username || !user.email || !user.role) {
+              if (!user || !user.id || !user.role) {
                 throw new Error('Invalid user details received');
               }
 
-              // Continue processing user details and loading content based on role
               let content = '';
               if (user.role === 'admin') {
-                content = '<h2>Admin Dashboard</h2>';
+                content += '<h2>Admin Dashboard</h2>';
                 fetch('/api/users/all')
                         .then(response => response.json())
                         .then(users => {
@@ -37,28 +33,63 @@
                             content += `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${u.role}</td></tr>`;
                           });
                           content += '</table>';
+                          content += '<button onClick="redirectToUserManagement()">User Management</button>';
+                          content += '<button onClick="redirectToMatchExport()">Matches</button>';
                           document.getElementById('content').innerHTML = content;
                         })
                         .catch(error => {
-                          console.error('Error fetching users:', error.message);
+                          console.error('Error fetching users:', error);
                         });
-                content += '<button onClick="redirectToUserManagement()">User Management</button>';
-                content += '<button onClick="redirectToMatchExport()">Matches</button>';
-              } else {
+              }
+              else if (user.role === 'tennis_player') {
                 getMatchesByRole(user.role);
+                content += '<h2>User Dashboard</h2>';
+
+                getMatchesByRole()
+                        .then(matches => {
+                          content += matches;
+                          content += '<button onClick="redirectToTournamentRegister()">Tournament Registration</button>';
+
+                          document.getElementById('content').innerHTML = content;
+                        })
+                        .catch(error => {
+                          console.error('Error fetching matches:', error.message);
+                        });
+              }
+              else if (user.role === 'referee') {
+                content += '<h2>Referee Dashboard</h2>';
+                // Fetch matches based on role
+                getMatchesByRole()
+                        .then(matches => {
+                          content += matches;
+                          content += '<button onClick="redirectToRefereeMatch()">Manage Matches</button>';
+
+                          document.getElementById('content').innerHTML = content;
+                        })
+                        .catch(error => {
+                          console.error('Error fetching matches:', error.message);
+                        });
               }
             })
             .catch(error => {
-              console.error('Error fetching current user details:', error.message);
+              console.error('Error fetching current user details:', error);
             });
+  }
+
+  function redirectToTournamentRegister() {
+    window.location.href = '/tournament_register.html';
+  }
+
+  function redirectToRefereeMatch() {
+    window.location.href = '/referee_match.html';
   }
 
   function getMatchesByRole() {
     // Assume there's an API endpoint that returns matches based on the user's role
-    fetch(`/api/users/byRole`)
+    return fetch(`/api/users/byRole`)
             .then(response => response.json())
             .then(matches => {
-              let content = '<h2>User Dashboard</h2>';
+              let content = '';
               if (matches.length > 0) {
                 content += '<table border="1"><tr><th>ID</th><th>Tournament ID</th><th>Player 1 ID</th><th>Player 2 ID</th><th>Referee ID</th><th>Match Date</th><th>Score</th></tr>';
                 matches.forEach(match => {
@@ -76,28 +107,26 @@
               } else {
                 content += '<p>No matches found.</p>';
               }
-              document.getElementById('content').innerHTML = content;
+              return content;
             })
             .catch(error => {
               console.error('Error fetching matches:', error.message);
-              document.getElementById('content').innerHTML = '<h2>User Dashboard</h2><p>Error loading matches.</p>';
+              return '<h2>Dashboard</h2><p>Error loading matches.</p>';
             });
   }
 
-  // Redirect function for update page
   function redirectToUpdate() {
     window.location.href = '/update.html';
   }
 
-  // Redirect function for user management page
   function redirectToUserManagement() {
     window.location.href = '/user_management.html';
   }
 
-  // Redirect function for match export page
   function redirectToMatchExport() {
     window.location.href = '/match_export.html';
   }
+
 
   // Call loadContent function when the page loads
   window.onload = loadContent;

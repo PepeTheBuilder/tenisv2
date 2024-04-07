@@ -32,6 +32,7 @@ public class MatchService {
     public List<Match> findByPlayerId(Long playerId) {
         return matchRepository.findByPlayer1Id(playerId);
     }
+
     public List<Match> findByPlayerName(String playerName) {
         User player = userService.findByUsername(playerName);
         List<Match> matches = matchRepository.findByPlayer1Id(player.getId());
@@ -53,6 +54,12 @@ public class MatchService {
 
     public void updateMatch(Match matchToUpdate) {
         matchRepository.save(matchToUpdate);
+    }
+
+    public void updateMatchScore(Long matchId, String score) {
+        Match match = matchRepository.findById(matchId).orElseThrow();
+        match.setScore(score);
+        matchRepository.save(match);
     }
 
     // Add other methods as needed

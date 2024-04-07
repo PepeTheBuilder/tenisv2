@@ -7,7 +7,11 @@ import java.util.Map;
 
 import com.example.tenisv2.Encoder;
 import com.example.tenisv2.model.Match;
+import com.example.tenisv2.model.Tournament;
+import com.example.tenisv2.model.UserEnrollment;
 import com.example.tenisv2.service.MatchService;
+import com.example.tenisv2.service.TournamentService;
+import com.example.tenisv2.service.UserEnrollmentService;
 import com.example.tenisv2.service.UserService;
 import com.example.tenisv2.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,12 @@ public class UserController {
 
     @Autowired
     private MatchService matchService;
+
+    @Autowired
+    private TournamentService tournamentService;
+
+    @Autowired
+    private UserEnrollmentService userEnrollmentService;
 
     private static User userLoggedIn;
     private boolean userLoggedInFlag = false;
@@ -68,8 +78,10 @@ public class UserController {
     @GetMapping("/current")
     public ResponseEntity<User> getCurrentUser() {
         // Assuming you have a way to retrieve current user details (e.g., from session or token)
+        User user = userLoggedIn;
+        user.setPassword(null); // Remove password from response
         if(userLoggedInFlag){
-            return ResponseEntity.ok(userLoggedIn);
+            return ResponseEntity.ok(user);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -191,10 +203,9 @@ public class UserController {
             return ResponseEntity.notFound().build(); // User not found
         }
     }
-
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUser(@RequestParam Long userId) {
-        System.out.printf("User id to delete: %d\n", userId);
+//        System.out.printf("User id to delete: %d\n", userId);
         userService.deleteById(userId);
         return ResponseEntity.ok("User deleted successfully");
     }
@@ -214,7 +225,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
     }
-
     @GetMapping("/matches")
     public ResponseEntity<List<Match>> getRefereeMatches() {
 
@@ -225,7 +235,6 @@ public class UserController {
             return ResponseEntity.notFound().build(); // Referee not found or unauthorized
         }
     }
-
     @PostMapping("/score")
     public ResponseEntity<String> updateMatchScore(@RequestParam Long matchId, @RequestParam String score) {
         // Get the current user
@@ -249,7 +258,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized access");
         }
     }
-
     @GetMapping("/search")
     public ResponseEntity<List<Match>> searchMatches(@RequestParam(required = false) String playerName,
                                                      @RequestParam(required = false) String matchDate) {
@@ -307,7 +315,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save matches as TXT file");
         }
     }
-    // Endpoint for tennis players to view their scheduled matches
     @GetMapping("/byRole")
     public ResponseEntity<List<Match>> getMatchesForTennisPlayer() {
         // Logic to retrieve matches scheduled for the logged-in tennis player
@@ -318,7 +325,7 @@ public class UserController {
         }
         return switch (userLoggedIn.getRole()) {
             case "tennis_player" -> {
-                List<Match> playerMatches = matchService.findByPlayerId(userLoggedIn.getId());
+                List<Match> playerMatches = matchService.getAllMatches();
                 System.out.println( playerMatches + " - player \n");
                 yield ResponseEntity.ok(playerMatches);
             }
@@ -331,5 +338,36 @@ public class UserController {
             default -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         };
 
+    }
+    @PostMapping("/updateScore")
+    public ResponseEntity<String> updateScore(@RequestParam long matchId, @RequestParam String score) {
+          if (!userLoggedInFlag) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
+        }
+        else if (!userLoggedIn.getRole().equals("referee")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to update match score");
+        }
+        matchService.updateMatchScore(matchId, score);
+        return ResponseEntity.ok("Match score updated successfully");
+    }
+    @GetMapping("/getTournaments")
+    public ResponseEntity<List<Tournament>> getTournaments() {
+        if (!userLoggedInFlag) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(tournamentService.getAllTournaments());
+    }
+    @PostMapping("/registerToTour")
+    public ResponseEntity<String> registerToTournament(@RequestParam long tournamentId) {
+        System.out.println("Registering to tournament: " + tournamentId);
+        if (!userLoggedInFlag) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
+        }
+
+        UserEnrollment userEnrollment = new UserEnrollment();
+        userEnrollment.setUserId(userLoggedIn.getId());
+        userEnrollment.setTournamentId(tournamentId);
+        userEnrollmentService.saveUserEnrollment(userEnrollment);
+        return ResponseEntity.ok("Player registered to tournament successfully");
     }
 }
