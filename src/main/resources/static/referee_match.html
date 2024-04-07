@@ -26,14 +26,13 @@
             return;
         }
         console.log(matchId, score);
-        // Create a FormData object to send the form data
         const formData = new FormData();
         formData.append('matchId', document.getElementById('matchId').value);
         formData.append('score', document.getElementById('score').value);
         console.log(formData);
         fetch('/api/users/updateScore', {
             method: 'POST',
-            body: formData  // Use FormData object as the request body
+            body: formData
         })
             .then(response => {
                 if (!response.ok) {
@@ -46,7 +45,7 @@
                     console.log(data);
                     alert('Score updated successfully');
                 } else {
-                    console.error('Error:', data); // Log the actual error message
+                    console.error('Error:', data);
                     alert('Error updating score');
                 }
             })

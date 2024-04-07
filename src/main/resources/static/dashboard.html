@@ -58,7 +58,6 @@
               }
               else if (user.role === 'referee') {
                 content += '<h2>Referee Dashboard</h2>';
-                // Fetch matches based on role
                 getMatchesByRole()
                         .then(matches => {
                           content += matches;
@@ -85,7 +84,6 @@
   }
 
   function getMatchesByRole() {
-    // Assume there's an API endpoint that returns matches based on the user's role
     return fetch(`/api/users/byRole`)
             .then(response => response.json())
             .then(matches => {
@@ -128,7 +126,6 @@
   }
 
 
-  // Call loadContent function when the page loads
   window.onload = loadContent;
 </script>
 </body>

@@ -10,7 +10,6 @@
 <form id="registrationForm">
   <label for="tournament">Select Tournament:</label>
   <select id="tournament" name="tournament">
-    <!-- Options will be populated dynamically with JavaScript -->
   </select>
   <button type="button" onclick="register()">Register</button>
 </form>
@@ -25,46 +24,35 @@
               data.forEach(tournament => {
                 const option = document.createElement('option');
                 option.value = tournament.id;
-                option.text = tournament.name; // Assuming 'name' is the property representing tournament names
+                option.text = tournament.name;
                 select.appendChild(option);
               });
             })
             .catch(error => console.error('Error fetching tournaments:', error));
   }
 
-  // Function to handle registration
-  // Function to handle registration
   function register() {
-    // Prevent the default form submission behavior
     event.preventDefault();
 
-    // Get the selected tournament ID from the dropdown
     const selectedTournamentId = document.getElementById('tournament').value;
 
-    // Create a FormData object to send data via POST request
     const formData = new FormData();
     formData.append('tournamentId', selectedTournamentId);
 
-    // Send a POST request to the server
     fetch('/api/users/registerToTour', {
       method: 'POST',
       body: formData
     })
             .then(response => {
-              // Check if the response is successful
               if (response.ok) {
-                // Display a success message
                 alert('Registration successful!');
               } else {
-                // Display an error message
                 alert('Registration failed. Please try again.');
               }
             })
             .catch(error => console.error('Error registering:', error));
   }
 
-
-  // Populate dropdown on page load
   window.onload = fetchTournaments;
 </script>
 </body>

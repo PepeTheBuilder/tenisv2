@@ -9,7 +9,6 @@
 <div id="matches"></div>
 
 <script>
-    // Function to fetch and display matches where the referee is assigned
     function loadMatches() {
         fetch('/api/users/matches')
             .then(response => {
@@ -29,11 +28,9 @@
             })
             .catch(error => {
                 console.error('Error fetching matches:', error.message);
-                // Handle error gracefully
             });
     }
 
-    // Call loadMatches function when the page loads
     window.onload = loadMatches;
 </script>
 </body>
