@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Referee Filter</title>
+</head>
+<body style="background-color: #606060;">
+
+<h1>Referee Filter</h1>
+
+<label for="playerId">PlayerID:</label>
+<input type="text" id="playerId" name="playerId">
+<button onclick="searchMatches()">Search</button>
+
+<div id="matches">
+    <!-- Table content will be inserted here -->
+</div>
+
+<script>
+    function searchMatches() {
+        var playerID = document.getElementById("playerId").value;
+        var formData = new FormData();
+        formData.append('playerID', playerID);
+
+        fetch("api/users/refereeMatchesFiltered", {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                displayMatches(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    function displayMatches(matches) {
+        var matchesDiv = document.getElementById('matches');
+        matchesDiv.innerHTML = '';
+
+        if (matches.length === 0) {
+            matchesDiv.innerHTML = 'No matches found.';
+            return;
+        }
+
+        var table = '<table border="1"><thead><tr><th>ID</th><th>Tournament ID</th><th>Player 1 ID</th><th>Player 2 ID</th><th>Referee ID</th><th>Match Date</th><th>Score</th></tr></thead><tbody>';
+        matches.forEach(match => {
+            table += '<tr>';
+            table += `<td>${match.id}</td>`;
+            table += `<td>${match.tournamentId}</td>`;
+            table += `<td>${match.player1Id}</td>`;
+            table += `<td>${match.player2Id}</td>`;
+            table += `<td>${match.refereeId}</td>`;
+            table += `<td>${match.matchDate}</td>`;
+            table += `<td>${match.score}</td>`;
+            table += '</tr>';
+        });
+        table += '</tbody></table>';
+        matchesDiv.innerHTML = table;
+    }
+</script>
+
+</body>
+</html>

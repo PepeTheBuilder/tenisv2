@@ -40,8 +40,7 @@ public class UserController {
     private static User userLoggedIn;
     private boolean userLoggedInFlag = false;
 
-
-    private Encoder encoder = Encoder.getInstance();
+    private final Encoder encoder = Encoder.getInstance();
 
     @PostMapping("/register")
     public User registerUser(@RequestBody User user) {
@@ -190,8 +189,13 @@ public class UserController {
     }
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUser(@RequestParam Long userId) {
-        userService.deleteById(userId);
-        return ResponseEntity.ok("User deleted successfully");
+        if(userLoggedInFlag && userLoggedIn.getRole().equals("admin")) {
+            userService.deleteById(userId);
+            return ResponseEntity.ok("User deleted successfully");
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to delete user");
+        }
     }
     @GetMapping("/user_managmement")
     public ResponseEntity<String> manageUsers() {
@@ -242,18 +246,24 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<List<Match>> searchMatches(@RequestParam(required = false) String playerName,
                                                      @RequestParam(required = false) String matchDate) {
-        List<Match> filteredMatches;
-        if (playerName != null && !playerName.isEmpty()) {
-            filteredMatches = matchService.findByPlayerName(playerName);
-        } else if (matchDate != null && !matchDate.isEmpty()) {
-            filteredMatches = matchService.findByMatchDate(matchDate);
+        if(userLoggedInFlag) {
 
-        } else {
-            filteredMatches = matchService.getAllMatches();
+            List<Match> filteredMatches;
+            if (playerName != null && !playerName.isEmpty()) {
+                filteredMatches = matchService.findByPlayerName(playerName);
+            } else if (matchDate != null && !matchDate.isEmpty()) {
+                filteredMatches = matchService.findByMatchDate(matchDate);
+
+            } else {
+                filteredMatches = matchService.getAllMatches();
+            }
+            return ResponseEntity.ok(filteredMatches);
         }
-        return ResponseEntity.ok(filteredMatches);
+        else {
+            return null;
+        }
     }
-    @GetMapping("/save/csv")
+/*    @GetMapping("/save/csv")
     public ResponseEntity<String> saveMatchesAsCSV() {
         List<Match> matches = matchService.getAllMatches();
         String filename = "matches.csv";
@@ -289,7 +299,7 @@ public class UserController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save matches as TXT file");
         }
-    }
+    }*/
     @GetMapping("/byRole")
     public ResponseEntity<List<Match>> getMatchesForTennisPlayer() {
         if (!userLoggedInFlag) {
@@ -303,8 +313,6 @@ public class UserController {
             }
             case "referee" -> {
                 List<Match> refereeMatches = matchService.findByRefereeId(userLoggedIn.getId());
-
-                System.out.println( refereeMatches + " - referee \n");
                 yield ResponseEntity.ok(refereeMatches);
             }
             default -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -331,7 +339,7 @@ public class UserController {
     }
     @PostMapping("/registerToTour")
     public ResponseEntity<String> registerToTournament(@RequestParam long tournamentId) {
-        System.out.println("Registering to tournament: " + tournamentId);
+//        System.out.println("Registering to tournament: " + tournamentId);
         if (!userLoggedInFlag) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
@@ -342,4 +350,19 @@ public class UserController {
         userEnrollmentService.saveUserEnrollment(userEnrollment);
         return ResponseEntity.ok("Player registered to tournament successfully");
     }
+
+    //------------ Assigment 2 ------------\\
+
+    @PostMapping("/refereeMatchesFiltered")
+    public ResponseEntity<List<Match>> getRefereeMatchesFiltered(@RequestParam("playerID") Long playerID) {
+        System.out.println("\nPlayerId = " + playerID);
+
+        if (!userLoggedInFlag && !userLoggedIn.getRole().equals("referee")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<Match> refereeMatches = matchService.findByRefereeIdAndPlayer1IdOrPlayer2Id(userLoggedIn.getId(), playerID);
+
+        return ResponseEntity.ok(refereeMatches);
+    }
+
 }

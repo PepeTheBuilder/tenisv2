@@ -51,6 +51,18 @@ public class MatchService {
     public List<Match> findByRefereeId(Long refereeId) {
         return matchRepository.findByRefereeId(refereeId);
     }
+    public List<Match> findByRefereeIdAndPlayer1IdOrPlayer2Id(Long refereeId, Long playerId1){
+        List<Match> matches = matchRepository.findByRefereeId(refereeId);
+        List<Match> matches2 = matchRepository.findByPlayer1Id(playerId1);
+        List<Match> matches3 = matchRepository.findByPlayer2Id(playerId1);
+        List<Match> matches4 = new java.util.ArrayList<>(List.of());
+        matches.forEach(match -> {
+            if (matches2.contains(match) || matches3.contains(match)){
+                matches4.add(match);
+            }
+        });
+        return matches4;
+    }
 
     public void updateMatch(Match matchToUpdate) {
         matchRepository.save(matchToUpdate);
