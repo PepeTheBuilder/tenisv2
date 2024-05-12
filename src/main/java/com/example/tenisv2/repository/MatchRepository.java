@@ -20,4 +20,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     List<Match> findByRefereeId(Long refereeId);
 
+    List<Match> findByTournamentId(Long tournamentId);
+
 }

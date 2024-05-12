@@ -67,6 +67,9 @@ public class MatchService {
     public void updateMatch(Match matchToUpdate) {
         matchRepository.save(matchToUpdate);
     }
+    public List<Match> findByTurnamentId(Long tournamentId){
+        return matchRepository.findByTournamentId(tournamentId);
+    }
 
     public void updateMatchScore(Long matchId, String score) {
         Match match = matchRepository.findById(matchId).orElseThrow();

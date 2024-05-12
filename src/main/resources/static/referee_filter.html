@@ -12,11 +12,32 @@
 <input type="text" id="playerId" name="playerId">
 <button onclick="searchMatches()">Search</button>
 
+<label for="TournamentId">TournamentId:</label>
+<input type="text" id="TournamentId" name="TournamentId">
+<button onclick="searchMatches2()">Search</button>
+
 <div id="matches">
     <!-- Table content will be inserted here -->
 </div>
 
 <script>
+    function searchMatches2() {
+        var TournamentId = document.getElementById("TournamentId").value;
+        var formData = new FormData();
+        formData.append('TournamentId', TournamentId);
+
+        fetch("api/users/refereeMatchesFiltered2", {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                displayMatches(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
     function searchMatches() {
         var playerID = document.getElementById("playerId").value;
         var formData = new FormData();

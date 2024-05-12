@@ -74,10 +74,9 @@ public class UserController {
     }
     @GetMapping("/current")
     public ResponseEntity<User> getCurrentUser() {
-
-        User user = userLoggedIn;
-        user.setPassword(null);
         if(userLoggedInFlag){
+            User user = userLoggedIn;
+            user.setPassword(null);
             return ResponseEntity.ok(user);
         } else {
             return ResponseEntity.notFound().build();
@@ -168,6 +167,9 @@ public class UserController {
     }
     @PutMapping("/update_user") // by admin
     public ResponseEntity<User> updateUserByAdmin(@RequestBody User updatedUser) {
+        if(!userLoggedInFlag || !userLoggedIn.getRole().equals("admin")) {
+            return ResponseEntity.notFound().build();
+        }
         User existingUser = null;
         System.out.println("New user: " + updatedUser);
         if (updatedUser.getId() != null) {
@@ -332,7 +334,7 @@ public class UserController {
     }
     @GetMapping("/getTournaments")
     public ResponseEntity<List<Tournament>> getTournaments() {
-        if (!userLoggedInFlag) {
+        if (!userLoggedInFlag ) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(tournamentService.getAllTournaments());
@@ -340,7 +342,7 @@ public class UserController {
     @PostMapping("/registerToTour")
     public ResponseEntity<String> registerToTournament(@RequestParam long tournamentId) {
 //        System.out.println("Registering to tournament: " + tournamentId);
-        if (!userLoggedInFlag) {
+        if (!userLoggedInFlag && (!userLoggedIn.getRole().equals("user") || !userLoggedIn.getRole().equals("referee"))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
 
@@ -355,12 +357,28 @@ public class UserController {
 
     @PostMapping("/refereeMatchesFiltered")
     public ResponseEntity<List<Match>> getRefereeMatchesFiltered(@RequestParam("playerID") Long playerID) {
-        System.out.println("\nPlayerId = " + playerID);
-
-        if (!userLoggedInFlag && !userLoggedIn.getRole().equals("referee")) {
+        if (!userLoggedInFlag || !userLoggedIn.getRole().equals("referee")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         List<Match> refereeMatches = matchService.findByRefereeIdAndPlayer1IdOrPlayer2Id(userLoggedIn.getId(), playerID);
+
+        if (refereeMatches.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(refereeMatches);
+    }
+    @PostMapping("/refereeMatchesFiltered2")
+    public ResponseEntity<List<Match>> getRefereeMatchesFiltered2(@RequestParam("TournamentId") Long tournamentID) {
+        System.out.println("Tournament ID: " + tournamentID);
+        if (!userLoggedInFlag || !userLoggedIn.getRole().equals("referee")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<Match> refereeMatches = matchService.findByTurnamentId(tournamentID);
+
+        if (refereeMatches.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
 
         return ResponseEntity.ok(refereeMatches);
     }
