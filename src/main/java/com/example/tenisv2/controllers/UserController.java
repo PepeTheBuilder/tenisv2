@@ -9,10 +9,7 @@ import com.example.tenisv2.Encoder;
 import com.example.tenisv2.model.Match;
 import com.example.tenisv2.model.Tournament;
 import com.example.tenisv2.model.UserEnrollment;
-import com.example.tenisv2.service.MatchService;
-import com.example.tenisv2.service.TournamentService;
-import com.example.tenisv2.service.UserEnrollmentService;
-import com.example.tenisv2.service.UserService;
+import com.example.tenisv2.service.*;
 import com.example.tenisv2.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -36,6 +34,9 @@ public class UserController {
 
     @Autowired
     private UserEnrollmentService userEnrollmentService;
+
+    @Autowired
+    private EmailService emailService;
 
     private static User userLoggedIn;
     private boolean userLoggedInFlag = false;
@@ -265,43 +266,6 @@ public class UserController {
             return null;
         }
     }
-/*    @GetMapping("/save/csv")
-    public ResponseEntity<String> saveMatchesAsCSV() {
-        List<Match> matches = matchService.getAllMatches();
-        String filename = "matches.csv";
-        try (FileWriter writer = new FileWriter(filename)) {
-            writer.append("ID,Tournament ID,Player 1 ID,Player 2 ID,Referee ID,Match Date,Score\n");
-            for (Match match : matches) {
-                writer.append(match.getId() + "," + match.getTournamentId() + "," + match.getPlayer1Id() +
-                        "," + match.getPlayer2Id() + "," + match.getRefereeId() + "," + match.getMatchDate() +
-                        "," + match.getScore() + "\n");
-            }
-            return ResponseEntity.ok("Matches saved as CSV file: " + filename);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save matches as CSV file");
-        }
-    }
-    @GetMapping("/save/txt")
-    public ResponseEntity<String> saveMatchesAsTXT() {
-        List<Match> matches = matchService.getAllMatches();
-        String filename = "matches.txt";
-        try (FileWriter writer = new FileWriter(filename)) {
-            for (Match match : matches) {
-                writer.append("ID: " + match.getId() + "\n");
-                writer.append("Tournament ID: " + match.getTournamentId() + "\n");
-                writer.append("Player 1 ID: " + match.getPlayer1Id() + "\n");
-                writer.append("Player 2 ID: " + match.getPlayer2Id() + "\n");
-                writer.append("Referee ID: " + match.getRefereeId() + "\n");
-                writer.append("Match Date: " + match.getMatchDate() + "\n");
-                writer.append("Score: " + match.getScore() + "\n\n");
-            }
-            return ResponseEntity.ok("Matches saved as TXT file: " + filename);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save matches as TXT file");
-        }
-    }*/
     @GetMapping("/byRole")
     public ResponseEntity<List<Match>> getMatchesForTennisPlayer() {
         if (!userLoggedInFlag) {
@@ -342,7 +306,7 @@ public class UserController {
     @PostMapping("/registerToTour")
     public ResponseEntity<String> registerToTournament(@RequestParam long tournamentId) {
 //        System.out.println("Registering to tournament: " + tournamentId);
-        if (!userLoggedInFlag && (!userLoggedIn.getRole().equals("user") || !userLoggedIn.getRole().equals("referee"))) {
+        if (!userLoggedInFlag || !userLoggedIn.getRole().equals("tennis_player")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
 
@@ -350,6 +314,13 @@ public class UserController {
         userEnrollment.setUserId(userLoggedIn.getId());
         userEnrollment.setTournamentId(tournamentId);
         userEnrollmentService.saveUserEnrollment(userEnrollment);
+
+        emailService.sendEmail(
+                "email@gmail.com",
+                "Tournament Registration Pending Review",
+                "A new tournament registration is pending review.\nUsername: " + userLoggedIn.getUsername() + "\n want to be in a Tournament"
+        );
+
         return ResponseEntity.ok("Player registered to tournament successfully");
     }
 
